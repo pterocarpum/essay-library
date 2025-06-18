@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Essay Library</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Loading screen -->
+  <div id="loadingScreen">
+    <div class="spinner"></div>
+    <p>Loading essays...</p>
+  </div>
+  <!-- /home page -->
+  <div id="homePage">
+    <header>
+      <span id="titleClick">Essay Library</span>
+      <button id="theme-toggle" aria-label="Toggle light/dark mode">
+        <span id="theme-icon">
+          <!-- Sun icon by default -->
+          <svg class="icon-sun" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </span>
+      </button>
+    </header>
+    <!-- Popup for secret/key input -->
+    <div id="secretKeyOverlay"></div>
+    <div id="secretKeyPopup">
+      <button class="close-btn" onclick="hideSecretKeyPopup()">✕</button>
+      <div class="popup-content">
+        <h3>Enter Credentials</h3>
+        <label>Secret:</label>
+        <input type="text" id="secretInput" autocomplete="off"/>
+        <label>Key:</label>
+        <input type="text" id="keyInput" autocomplete="off"/>
+        <button onclick="debouncedSubmitSecretKey()" id="submitSecretKeyButton">Submit</button>
+      </div>
+    </div>
+    <!-- Search bar and filter -->
+    <div class="search-bar">
+      <input type="text" placeholder="Search keywords" />
+      <select>
+        <option value="">All</option>
+        <!-- Dynamically populated -->
+      </select>
+    </div>
+    <!-- Container for JS-generated cards -->
+    <div id="cardsContainer"></div>
+  </div>
+
+  <!-- /essay/:id page -->
+  <div id="essayPage" style="display:none">
+  <button class="back-button" onclick="goToHome()" aria-label="Back to Home">
+    <!-- simple home SVG, inherits currentColor -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        viewBox="0 0 24 24">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/>
+    </svg>
+  </button>
+  <div class="essay-container">
+    <div class="essay-title"></div>
+    <div></div> <!-- Content will be injected here -->
+  </div>
+  <button class="floating-button" onclick="showSummary()">AI Summary</button>
+
+  <!-- Overlay and summary popup -->
+  <div id="overlay"></div>
+  <div id="summaryPopup">
+  <button class="close-btn" onclick="hideSummary()">✕</button>
+  <div class="summary-content">
+    <h3>Essay Summary</h3>
+    <p></p>
+  </div>
+</div>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
+  <script src="decrypt.js"></script>
+  <script src="get.js"></script>
+  <script src="template.js"></script>
+</body>
+</html>
