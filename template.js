@@ -4,49 +4,53 @@ let metadataList = [];
 let savedTheme = '';
 
 async function main() {
-  // Load and prepare metadata
-  metadataMap = loadEssayMetadata();
-  metadataList = Object.entries(metadataMap).map(([path, data]) => ({ path, ...data }));
-  const [topics, count] = loadAllTopics(metadataMap);
-  populateTopicSelect(topics, count);
+    // Load and prepare metadata
+    metadataMap = loadEssayMetadata();
+    metadataList = Object.entries(metadataMap).map(([path, data]) => ({ path, ...data }));
+    const [topics, count] = loadAllTopics(metadataMap);
+    populateTopicSelect(topics, count);
 
-  // Parse URL parameters
-  const params = getURLParams();
-  const urlQuery = params.q || '';
-  const urlTopic = params.topic || '';
-  const urlEssayPath = params.e || '';
+    // Parse URL parameters
+    const params = getURLParams();
+    const urlQuery = params.q || '';
+    const urlTopic = params.topic || '';
+    const urlEssayPath = params.e || '';
 
-  // Set search bar values before rendering
-  const searchInput = document.querySelector('.search-bar input[type="text"]');
-  const topicSelect = document.querySelector('.search-bar select');
-  if (searchInput) searchInput.value = urlQuery;
-  if (topicSelect) topicSelect.value = urlTopic;
+    // Set search bar values before rendering
+    const searchInput = document.querySelector('.search-bar input[type="text"]');
+    const topicSelect = document.querySelector('.search-bar select');
+    if (searchInput) searchInput.value = urlQuery;
+    if (topicSelect) topicSelect.value = urlTopic;
 
-  // Show essay if path provided, else show home page with search/topic filter
-  if (urlEssayPath) {
-    const essayItem = metadataList.find(item => item.path === urlEssayPath);
-    buildHomePage(metadataList, urlQuery);
-    if (essayItem) {
-      showEssay(essayItem, false); // Don't update URL again
+    // Render home page or essay page based on URL
+    if (urlEssayPath) {
+        const essayItem = metadataList.find(item => item.path === urlEssayPath);
+        if (essayItem) {
+            // Build the home page in the background so it's ready when the user goes back
+            performSearch(false); 
+            showEssay(essayItem, false); // Don't update URL again
+        } else {
+            // If the essay path is invalid, go to the home page and perform the search from the URL
+            goToHome();
+            performSearch(false); // This correctly filters by query and topic
+        }
     } else {
-      goToHome();
+        // Default home page load
+        goToHome();
+        performSearch(false);
     }
-  } else {
-    performSearch(false); // Don't update URL again on initial load
-    goToHome();
-  }
 
-  // Bind search and filter events (debounced for performance)
-  let searchTimeout;
-  if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => performSearch(), 200);
-    });
-  }
-  if (topicSelect) {
-    topicSelect.addEventListener('change', performSearch);
-  }
+    // Debounced search/filter events
+    let searchTimeout;
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(performSearch, 200);
+        });
+    }
+    if (topicSelect) {
+        topicSelect.addEventListener('change', performSearch);
+    }
 }
 
 function getURLParams() {
@@ -130,7 +134,7 @@ function buildHomePage(list, query = '') {
                 let lowerWord = cleanWord(word);
                 // Only highlight if the word contains at least one alphanumeric character
                 if (!/[a-z0-9]/i.test(word)) return escapeHTML(word);
-                const match = queries.some(q => lowerWord.startsWith(q) || q.startsWith(lowerWord));
+                const match = queries.some(q => lowerWord.startsWith(q));
                 return match ? `<span style="color:rgb(211, 109, 86);">${escapeHTML(word)}</span>` : escapeHTML(word);
             }).join('');
     }
@@ -347,10 +351,6 @@ function getReconstructedData(prefix) {
     }
 }
 
-window.addEventListener('popstate', () => {
-    main(); // Re-run main to parse URL parameters and update UI
-});
-
 // --- Light/Dark mode toggle ---
 document.addEventListener('DOMContentLoaded', () => {
     // Theme toggle logic
@@ -380,6 +380,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const isDark = !document.body.classList.contains('dark-mode');
         setTheme(isDark);
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    window.addEventListener('popstate', () => {
+        main(); // Re-run main to parse URL parameters and update UI
     });
 
     // Load cached data from sessionStorage
