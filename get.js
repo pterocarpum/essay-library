@@ -27,7 +27,7 @@ function debounce(func, wait) {
 function isValidLZStringBase64(str) {
   try {
     const result = LZString.decompressFromBase64(str);
-    return result !== null;
+    return result !== '';
   } catch (e) {
     return false;
   }
