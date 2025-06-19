@@ -129,7 +129,7 @@ function buildHomePage(list, query = '') {
         if (queries.length === 0) return escapeHTML(text);
 
         return text
-            .split(/\b/)
+            .split(/(\s+)/)
             .map(word => {
                 let lowerWord = cleanWord(word);
                 // Only highlight if the word contains at least one alphanumeric character
@@ -197,8 +197,8 @@ function showEssay(item, updateUrl = true) {
     window.scrollTo(0, 0);
 
     document.querySelector('.essay-title').textContent = item.question || 'No title available';
-    document.querySelector('.essay-container > div:nth-child(2)').textContent = dtc(item.content, localStorage.getItem('key') + item.path) || 'No content available.';
-    document.querySelector('#summaryPopup p').textContent = dtc(item.summary, localStorage.getItem('key') + item.filename) || 'No summary available.';
+    document.querySelector('.essay-container > div:nth-child(2)').textContent = dtc(item.content, localStorage.getItem('key')) || 'No content available.';
+    document.querySelector('#summaryPopup p').textContent = dtc(item.summary, localStorage.getItem('key')) || 'No summary available.';
     console.log(`Tags: ${item.main_tags.join(', ')}\n\nOther tags: ${item.other_tags.join(', ')}`);
 
     if (updateUrl) {
@@ -263,9 +263,9 @@ function loadEssayMetadata() {
     essayMetadataRaw.forEach(item => {
         let a = {
             filename: item.filename,
-            folder: dtc(item.folder, key + item.filename),
+            folder: dtc(item.folder, key),
             summary: item.summary,
-            question: dtc(item.question, key + item.filename),
+            question: dtc(item.question, key),
             main_tags: item.main_tags,
             other_tags: item.other_tags,
         };

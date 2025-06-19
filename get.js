@@ -24,8 +24,21 @@ function debounce(func, wait) {
     };
 }
 
+function isValidLZStringBase64(str) {
+  try {
+    const result = LZString.decompressFromBase64(str);
+    return result !== null;
+  } catch (e) {
+    return false;
+  }
+}
+
 async function submitSecretKey() {
-    const secret = document.getElementById("secretInput").value.trim() || localStorage.getItem('secret');
+    let secret = document.getElementById("secretInput").value.trim();
+    if (!secret) {
+        secret = localStorage.getItem('secret')
+        if (isValidLZStringBase64(secret)) secret = LZString.decompressFromBase64(secret);
+    }
     const key = document.getElementById("keyInput").value.trim() || localStorage.getItem('key');
     const btn = document.getElementById('submitSecretKeyButton');
     const loadingWords = document.querySelector('#loadingScreen p');
@@ -39,25 +52,27 @@ async function submitSecretKey() {
     loadingWords.textContent = 'Loading...';
     await fetchData(secret, 'essay_content')
         .then(data => {
-            if ('error' in data) {
+            if (data.includes('error')) {
                 error = true;
                 return;
             }
-            essayContentsRaw = data;
+            essayContentsRaw = data; // Compressed contents
         })
         .catch(error => {
             console.error("Error fetching data:", error);
+            error = true;
         });
     await fetchData(secret, 'essay_metadata')
         .then(data => {
-            if ('error' in data) {
+            if (data.includes('error')) {
                 error = true;
                 return;
             }
-            essayMetadataRaw = data;
+            essayMetadataRaw = data; // Compressed contents
         })
         .catch(error => {
             console.error("Error fetching data:", error);
+            error = true;
         });
     if (error) {
         loadingWords.textContent = 'Error with downloading data...';
@@ -68,15 +83,13 @@ async function submitSecretKey() {
     }
     // Store secrets in localStorage
     loadingWords.textContent = 'Formatting...';
-    localStorage.setItem('secret', secret);
-    localStorage.setItem('key', key);
+    if (!isValidLZStringBase64(localStorage.getItem('secret'))) localStorage.setItem('secret', LZString.compressToBase64(secret));
+    if (localStorage.getItem('key') !== key) localStorage.setItem('key', predeterminedScramble(key));
     // cache data in sessionStorage
     sessionStorage.clear(); // Clear previous sessionStorage data
 
-    const essayContentsString = JSON.stringify(essayContentsRaw);
-    const essayMetadataString = JSON.stringify(essayMetadataRaw);
-    let compressedContents = LZString.compressToUTF16(essayContentsString);
-    let compressedMetadata = LZString.compressToUTF16(essayMetadataString);
+    let compressedContents = essayContentsRaw;
+    let compressedMetadata = essayMetadataRaw;
 
     // Split and store essayContentsRaw
     let i = 0;
@@ -93,6 +106,13 @@ async function submitSecretKey() {
         compressedMetadata = compressedMetadata.slice(1000000);
         j++;
     }
+
+    // Decompress and parse the data
+    essayContentsRaw = LZString.decompressFromUTF16(essayContentsRaw);
+    essayContentsRaw = JSON.parse(essayContentsRaw); // Parse the decompressed string to JSON
+    essayMetadataRaw = LZString.decompressFromUTF16(essayMetadataRaw);
+    essayMetadataRaw = JSON.parse(essayMetadataRaw); // Parse the decompressed string to JSON
+
     await main();
     // Reset inputs and hide popup
     btn.disabled = false;
@@ -119,7 +139,7 @@ async function fetchData(secretKey, endpoint) {
             const errorText = await response.text();
             throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}. Details: ${errorText}`);
         }
-        const data = await response.json();
+        const data = await response.text();
         return data;
     } catch (error) {
         console.error("Error fetching data:", error);
