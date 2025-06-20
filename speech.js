@@ -83,10 +83,8 @@ function speakLine(index) {
   );
 
   const utterance = new SpeechSynthesisUtterance(target);
-  utterance.voice = window.speechSynthesis
-                      .getVoices()
-                      .find(v => v.name === 'Google UK English Male');
-  utterance.rate = 1.2;
+  utterance.voice = speechSynthesis.getVoices().find(v => v.name === localStorage.getItem('voiceName'));
+  utterance.rate = parseFloat(localStorage.getItem('voiceSpeed'));
 
   utterance.onend = () => {
     if (!isPlaying) return;

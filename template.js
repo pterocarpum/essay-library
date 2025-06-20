@@ -356,62 +356,99 @@ function getReconstructedData(prefix) {
     }
 }
 
-// --- Light/Dark mode toggle ---
+function toggleSettings() {
+  const overlay = document.querySelector('.settings-overlay');
+  if (overlay) overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    window.speechSynthesis.onvoiceschanged = () => {
-        // Now voices are ready and you can assign them
-        // Optional: preload one utterance with the voice so it's cached
-        const preloadUtterance = new SpeechSynthesisUtterance('');
-        preloadUtterance.voice = window.speechSynthesis.getVoices().find(v => v.name === 'Google UK English Male');
-        window.speechSynthesis.speak(preloadUtterance);
-        window.speechSynthesis.cancel()
+    // THEME
+    const themeToggle = document.getElementById('themeToggle');
+    const applyTheme = (dark) => {
+        document.body.classList.toggle('dark-mode', dark);
+        themeToggle.checked = dark;
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
     };
-    togglePlayPause(document.getElementById('play-pause'), true)
-    // Theme toggle logic
-    const toggleBtn = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    // Add moon icon SVG (hidden by default)
-    themeIcon.insertAdjacentHTML('beforeend', `
-    <svg class="icon-moon" width="24" height="24" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/>
-    </svg>
-    `);
-
-    function setTheme(dark) {
-        if (dark) {
-            document.body.classList.add('dark-mode');
-        } else {
-            document.body.classList.remove('dark-mode');
-        }
-    }
-    // Initial theme
-    savedTheme = localStorage.getItem('theme');
+    const storedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setTheme(savedTheme === 'dark' || (!savedTheme && prefersDark));
+    applyTheme(storedTheme === 'dark' || (!storedTheme && prefersDark));
+    themeToggle.addEventListener('change', () => applyTheme(themeToggle.checked));
 
-    toggleBtn.addEventListener('click', () => {
-        const isDark = !document.body.classList.contains('dark-mode');
-        setTheme(isDark);
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    // FONT
+    const fontSelect = document.getElementById('fontSelect');
+    const applyFont = (f) => {
+        document.body.style.fontFamily = f;
+        localStorage.setItem('font', f);
+    };
+    const savedFont = localStorage.getItem('font') || fontSelect.value;
+    fontSelect.value = savedFont;
+    applyFont(savedFont);
+    fontSelect.addEventListener('change', () => applyFont(fontSelect.value));
+
+    // VOICE
+    const voiceSelect = document.getElementById('voiceSelect');
+    const populateVoices = () => {
+        const voices = speechSynthesis.getVoices();
+        voiceSelect.innerHTML = '';
+        voices.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.name;
+            opt.textContent = `${v.name} (${v.lang})${v.default ? ' — Default' : ''}`;
+            voiceSelect.appendChild(opt);
+        });
+        const storedVoice = localStorage.getItem('voiceName');
+        if (storedVoice && voices.some(v => v.name === storedVoice)) {
+            voiceSelect.value = storedVoice;
+        } else {
+            const fallback = voices.find(v => v.default && v.lang.startsWith('en'))
+                || voices.find(v => v.lang.startsWith('en'))
+                || voices[0];
+            if (fallback) {
+                voiceSelect.value = fallback.name;
+                localStorage.setItem('voiceName', fallback.name);
+            }
+        }
+    };
+    speechSynthesis.addEventListener('voiceschanged', populateVoices);
+    /* fire once in case voices are ready */
+    populateVoices();
+    voiceSelect.addEventListener('change', () => {
+        localStorage.setItem('voiceName', voiceSelect.value);
     });
 
+    // SPEED
+    const speedInput = document.getElementById('voiceSpeed');
+    const speedValue = document.getElementById('speedValue');
+    const updateSpeed = (val) => {
+        speedInput.value = val;
+        speedValue.textContent = parseFloat(val).toFixed(1);
+        localStorage.setItem('voiceSpeed', val);
+    };
+    const storedSpeed = localStorage.getItem('voiceSpeed') || 1;
+    updateSpeed(storedSpeed);
+    speedInput.addEventListener('input', () => updateSpeed(speedInput.value));
+
+    // Initial state for play/pause button (controlled by speech.js now)
+    togglePlayPause(document.getElementById('play-pause'), true);
+
+    // --- URL handling ---
     window.addEventListener('popstate', () => {
-        main(); // Re-run main to parse URL parameters and update UI
+        main();
     });
-    
+
+    // --- Load cache and data ---
     hideLoading();
-    // Load cached data from sessionStorage
     let cachedContents = getReconstructedData('essayContentsRaw');
     let cachedMetadata = getReconstructedData('essayMetadataRaw');
-    essayContentsRaw = cachedContents || {};
-    essayMetadataRaw = cachedMetadata || [];
-    if (essayContentsRaw && essayMetadataRaw.length > 0) {
+
+    if (cachedContents && cachedMetadata) {
+        essayContentsRaw = cachedContents || {};
+        essayMetadataRaw = cachedMetadata || [];
         main();
         return;
     }
 
-    // Check if secrets are already stored in localStorage
+    // --- Check if secrets are stored ---
     const secret = localStorage.getItem('secret');
     const key = localStorage.getItem('key');
     if (secret && key) {

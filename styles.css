@@ -25,51 +25,6 @@ header {
     justify-content: space-between;
 }
 
-#theme-toggle {
-    background: none;
-    border: none;
-    cursor: pointer;
-    outline: none;
-    position: absolute;
-    right: 1.5rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    z-index: 10;
-    -webkit-tap-highlight-color: transparent;
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-}
-#theme-toggle:active {
-    transform: rotate(25deg) scale(0.92);
-}
-
-#theme-toggle:active svg {
-    transform: rotate(40deg) scale(1.1);
-}
-
-#theme-icon svg {
-    width: 2rem;
-    height: 2rem;
-    display: block;
-    color: #f8f9fa;
-    transition: color 0.2s;
-    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-}
-
-body.dark-mode #theme-icon .icon-sun {
-    display: none;
-}
-body.dark-mode #theme-icon .icon-moon {
-    display: block;
-}
-#theme-icon .icon-moon {
-    display: none;
-    color: #595959;
-}
-
 /* Dark mode overrides */
 body.dark-mode {
     background: #202124;
@@ -159,7 +114,7 @@ body.dark-mode .essay-title {
 .search-bar select {
     padding: 0.6rem 1rem;
     font-size: 1rem;
-    min-width: 40vh;
+    min-width: 100px;
     border-radius: 25px;
     border: 1px solid #ced4da;
     background: #eeeeee;
@@ -553,4 +508,280 @@ body.dark-mode .filled {
 
 body.dark-mode .highlight-sentence {
     background-color: #554400;
+}
+
+/* --- SETTINGS BUTTON (reverted to original) --- */
+.settings-button {
+  position: absolute;
+  top: 0.8rem;
+  right: 1.2rem;
+  z-index: 999;
+  background: #343a40;
+  /* Changed from transparent to match header */
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-button:hover {
+  transform: scale(1.05) rotate(20deg);
+  background-color: #495057;
+  /* Slightly lighter shade for hover effect */
+}
+
+.settings-button img {
+  width: 1.8rem;
+  height: 1.8rem;
+  /* The icon from the URL is already white, which is perfect for the dark header */
+}
+
+/* Dark mode override for settings button */
+body.dark-mode .settings-button {
+  background: #26282c;
+  /* Matches dark mode header */
+}
+
+body.dark-mode .settings-button:hover {
+  background: #343a40;
+  /* Slightly lighter for dark mode hover */
+}
+
+
+/* --- OVERLAY & MODAL --- */
+.settings-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  transform: scale(0.97);
+  transition: transform 0.25s ease;
+  overflow: hidden;
+}
+
+.modal.show {
+  transform: scale(1);
+}
+
+.modal header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.modal header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.modal header .close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.modal header .close:hover {
+  color: #111827;
+}
+
+.modal-content {
+  padding: 1.5rem 2rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.25rem 1rem;
+  align-items: center;
+}
+
+.modal-content label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+
+/* --- CONTROLS INSIDE MODAL --- */
+
+/* Toggle Switch */
+.toggle-switch {
+  grid-column: 2;
+  justify-self: end;
+  position: relative;
+  width: 50px;
+  height: 28px;
+}
+
+.toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-label {
+  position: absolute;
+  inset: 0;
+  background: #cbd5e1;
+  border-radius: 14px;
+  transition: background-color 0.3s;
+  cursor: pointer;
+}
+
+.toggle-label::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle-input:checked + .toggle-label {
+  background-color: #007AFF;
+}
+
+.toggle-input:checked + .toggle-label::after {
+  transform: translateX(22px);
+}
+
+/* Select Dropdown (shrink to fit) */
+.modal-content select {
+  grid-column: 2;
+  justify-self: end;
+  width: auto;
+  min-width: 100px;
+  max-width: 200px;
+  padding: 0.5rem;
+  font-size: 0.95rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #111827;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modal-content select:focus {
+  outline: none;
+  border-color: #007AFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+}
+
+/* Voice Speed Slider */
+.slider-container {
+  grid-column: 2;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slider-value {
+  min-width: 2.5ch;
+  text-align: right;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #4b5563;
+}
+
+/* Modern flat slider */
+input[type="range"] {
+  width: 120px;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  outline: none;
+  transition: background 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #007AFF;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  margin-top: -5px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #007AFF;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+
+/* --- DARK MODE OVERRIDES --- */
+body.dark-mode .modal {
+  background: #2b2c30;
+  color: #e3e6ea;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .modal header {
+  background: #1f2023;
+  color: #e3e6ea;
+  border-bottom: 1px solid #343a40;
+}
+
+body.dark-mode .modal-content label {
+  color: #d1d5db;
+}
+
+body.dark-mode .modal-content select {
+  background: #3f4045;
+  color: #e3e6ea;
+  border-color: #495057;
+}
+
+body.dark-mode .slider-value {
+  color: #9ca3af;
+}
+
+body.dark-mode input[type="range"] {
+  background: #3a3b3f;
+}
+
+body.dark-mode input[type="range"]::-webkit-slider-thumb,
+body.dark-mode input[type="range"]::-moz-range-thumb {
+  background: #007AFF;
+  border-color: #1f2023;
 }
