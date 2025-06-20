@@ -342,6 +342,7 @@ function getReconstructedData(prefix) {
     if (!combined) return null;
     // Decompress the combined string
     combined = LZString.decompressFromUTF16(combined);
+    combined = LZString.decompressFromEncodedURIComponent(combined);
     try {
         combined = JSON.parse(combined);
         return combined; // Return the parsed object
