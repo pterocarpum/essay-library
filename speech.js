@@ -1,5 +1,5 @@
 let isPlaying = false;
-let repeatMode = true; // true = Repeat (R), false = Continue (C)
+let playMode = 'R'; // 'R' = Repeat, 'P' = Paragraph, 'C' = Continuous
 let currentLineIndex = 0;
 
 function togglePlayPause(button, leave = false) {
@@ -40,41 +40,76 @@ function getCurrentLines() {
         .map(s => s + '.');
 }
 
-function speakLine(index) {
-    const essayContainer = document.querySelector('.essay-container > div:nth-child(2)');
-    const lines = getCurrentLines();
-    const targetLine = lines[index];
-    const textContent = essayContainer.textContent;
+/**
+ * Given a flat list of sentences and a current index,
+ * returns [paraStart, paraEnd] for the paragraph containing that index.
+ */
+function getParagraphBounds(lines, currentIndex) {
+  // First build an array of paragraph lengths
+  const text = document.querySelector('.essay-container > div:nth-child(2)').textContent;
+  const rawParas = text.split(/\n+/).filter(p => p.trim());
+  let cum = 0;
 
-    // Highlight current line using dynamic content
-    const highlightedHTML = textContent.replace(
-        targetLine,
-        `<span class="highlight-sentence">${targetLine}</span>`
-    );
-    essayContainer.innerHTML = highlightedHTML;
-
-    const utterance = new SpeechSynthesisUtterance(targetLine);
-    utterance.voice = window.speechSynthesis.getVoices().find(v => v.name === 'Google UK English Male');
-    utterance.rate = 1.2;
-
-    utterance.onend = () => {
-        if (isPlaying) {
-            if (repeatMode) {
-                speakLine(currentLineIndex);
-            } else {
-                currentLineIndex = (currentLineIndex + 1) % lines.length
-                speakLine(currentLineIndex);
-            }
-        }
-    };
-
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
-
-    const highlightSpan = essayContainer.querySelector('.highlight-sentence');
-    if (highlightSpan) {
-        highlightSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  for (const para of rawParas) {
+    const sentences = para
+      .split('.')
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(s => s + '.');
+    const start = cum;
+    const end = cum + sentences.length - 1;
+    if (currentIndex >= start && currentIndex <= end) {
+      return [start, end];
     }
+    cum += sentences.length;
+  }
+  // fallback to whole document
+  return [0, lines.length - 1];
+}
+
+function speakLine(index) {
+  const essayContainer = document.querySelector('.essay-container > div:nth-child(2)');
+  const textContent = essayContainer.textContent;
+  const lines = getCurrentLines();
+
+  // figure out paragraph start/end
+  const [paraStart, paraEnd] = getParagraphBounds(lines, index);
+
+  // highlight only the one sentence
+  const target = lines[index];
+  essayContainer.innerHTML = textContent.replace(
+    target,
+    `<span class="highlight-sentence">${target}</span>`
+  );
+
+  const utterance = new SpeechSynthesisUtterance(target);
+  utterance.voice = window.speechSynthesis
+                      .getVoices()
+                      .find(v => v.name === 'Google UK English Male');
+  utterance.rate = 1.2;
+
+  utterance.onend = () => {
+    if (!isPlaying) return;
+
+    if (playMode === 'R') {
+      setTimeout(() => speakLine(index), 0);
+    } else if (playMode === 'P') {
+      const next = index < paraEnd ? index + 1 : paraStart;
+      currentLineIndex = next;
+      setTimeout(() => speakLine(next), 0);
+    } else { // Continuous
+      const next = (index + 1) % lines.length;
+      currentLineIndex = next;
+      setTimeout(() => speakLine(next), 0);
+    }
+  };
+
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utterance);
+
+  // scroll highlight into view
+  const span = essayContainer.querySelector('.highlight-sentence');
+  if (span) span.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function skipBackward() {
@@ -100,8 +135,10 @@ function skipForward() {
 }
 
 function toggleMode() {
-    repeatMode = !repeatMode;
-    document.getElementById('mode-label').textContent = repeatMode ? 'R' : 'C';
+    const modes = ['R', 'P', 'C'];
+    const currentIndex = modes.indexOf(playMode);
+    playMode = modes[(currentIndex + 1) % modes.length];
+    document.getElementById('mode-label').textContent = playMode;
 }
 
 function updateHighlight() {
