@@ -83,7 +83,7 @@ async function submitSecretKey() {
         return;
     }
     // Store secrets in localStorage
-    loadingWords.textContent = 'Formatting';
+    loadingWords.textContent = 'Caching';
     if (!isValidLZStringBase64(localStorage.getItem('secret'))) localStorage.setItem('secret', LZString.compressToBase64(secret));
     if (localStorage.getItem('key') !== key) localStorage.setItem('key', predeterminedScramble(key));
     // cache data in sessionStorage
@@ -91,30 +91,34 @@ async function submitSecretKey() {
 
     let compressedContents = LZString.compressToUTF16(essayContentsRaw);
     let compressedMetadata = LZString.compressToUTF16(essayMetadataRaw);
+    try {
+        // Split and store essayContentsRaw
+        let i = 0;
+        while (compressedContents.length > 0) {
+            sessionStorage.setItem(`essayContentsRaw${i}`, compressedContents.slice(0, 100000));
+            compressedContents = compressedContents.slice(100000);
+            i++;
+        }
 
-    // Split and store essayContentsRaw
-    let i = 0;
-    while (compressedContents.length > 0) {
-        sessionStorage.setItem(`essayContentsRaw${i}`, compressedContents.slice(0, 100000));
-        compressedContents = compressedContents.slice(100000);
-        i++;
+        // Split and store essayMetadataRaw
+        let j = 0;
+        while (compressedMetadata.length > 0) {
+            sessionStorage.setItem(`essayMetadataRaw${j}`, compressedMetadata.slice(0, 100000));
+            compressedMetadata = compressedMetadata.slice(100000);
+            j++;
+        }
+    } catch {
+        loadingWords.textContent = 'Caching failed';
     }
-
-    // Split and store essayMetadataRaw
-    let j = 0;
-    while (compressedMetadata.length > 0) {
-        sessionStorage.setItem(`essayMetadataRaw${j}`, compressedMetadata.slice(0, 100000));
-        compressedMetadata = compressedMetadata.slice(100000);
-        j++;
-    }
-
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 seconds
+    loadingWords.textContent = 'Formatting'
     // Decompress and parse the data
     essayContentsRaw = LZString.decompressFromEncodedURIComponent(essayContentsRaw);
     essayContentsRaw = JSON.parse(essayContentsRaw); // Parse the decompressed string to JSON
     essayMetadataRaw = LZString.decompressFromEncodedURIComponent(essayMetadataRaw);
     essayMetadataRaw = JSON.parse(essayMetadataRaw); // Parse the decompressed string to JSON
-    await new Promise(resolve => setTimeout(resolve, 500)); // Wait for 0.5 seconds
     await main();
+    await new Promise(resolve => setTimeout(resolve, 500)); // Wait for 0.5 seconds
     // Reset inputs and hide popup
     btn.disabled = false;
     document.getElementById('secretInput').value = '';
