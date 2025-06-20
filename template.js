@@ -4,6 +4,7 @@ let metadataList = [];
 let savedTheme = '';
 
 async function main() {
+    togglePlayPause(document.getElementById('play-pause'), true)
     // Load and prepare metadata
     metadataMap = loadEssayMetadata();
     metadataList = Object.entries(metadataMap).map(([path, data]) => ({ path, ...data }));
@@ -192,13 +193,14 @@ function showEssay(item, updateUrl = true) {
 
     document.getElementById('homePage').style.display = 'none';
     document.getElementById('essayPage').style.display = 'inline';
+    document.getElementById('control-bar').style.display = 'flex';
 
     // Scroll to top of essay
     window.scrollTo(0, 0);
 
     document.querySelector('.essay-title').textContent = item.question || 'No title available';
-    document.querySelector('.essay-container > div:nth-child(2)').textContent = dtc(item.content, localStorage.getItem('key')) || 'No content available.';
-    document.querySelector('#summaryPopup p').textContent = dtc(item.summary, localStorage.getItem('key')) || 'No summary available.';
+    document.querySelector('.essay-container > div:nth-child(2)').textContent = dtc(item.content, localStorage.getItem('key')) || 'No content available';
+    document.querySelector('#summaryPopup p').textContent = dtc(item.summary, localStorage.getItem('key')) || 'No summary available';
     console.log(`Tags: ${item.main_tags.join(', ')}\n\nOther tags: ${item.other_tags.join(', ')}`);
 
     if (updateUrl) {
@@ -217,7 +219,9 @@ function showEssay(item, updateUrl = true) {
 }
 
 function goToHome() {
+    togglePlayPause(document.getElementById('play-pause'), true)
     document.getElementById('essayPage').style.display = 'none';
+    document.getElementById('control-bar').style.display = 'none';
     document.getElementById('homePage').style.display = 'block';
 
     // Restore previous scroll position
@@ -354,6 +358,15 @@ function getReconstructedData(prefix) {
 
 // --- Light/Dark mode toggle ---
 document.addEventListener('DOMContentLoaded', () => {
+    window.speechSynthesis.onvoiceschanged = () => {
+        // Now voices are ready and you can assign them
+        // Optional: preload one utterance with the voice so it's cached
+        const preloadUtterance = new SpeechSynthesisUtterance('');
+        preloadUtterance.voice = window.speechSynthesis.getVoices().find(v => v.name === 'Google UK English Male');
+        window.speechSynthesis.speak(preloadUtterance);
+        window.speechSynthesis.cancel()
+    };
+    togglePlayPause(document.getElementById('play-pause'), true)
     // Theme toggle logic
     const toggleBtn = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
@@ -386,7 +399,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('popstate', () => {
         main(); // Re-run main to parse URL parameters and update UI
     });
-
+    
+    hideLoading();
     // Load cached data from sessionStorage
     let cachedContents = getReconstructedData('essayContentsRaw');
     let cachedMetadata = getReconstructedData('essayMetadataRaw');

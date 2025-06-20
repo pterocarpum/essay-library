@@ -104,11 +104,11 @@ body.dark-mode .tags {
     color: #adb5bd;        /* light gray for tags */
 }
 body.dark-mode .floating-button {
-    background: #2563eb;   /* vibrant blue */
+    background: rgba(40, 40, 40, 0.9);
     color: #f8fafc;
 }
 body.dark-mode .floating-button:hover {
-    background: #1e40af;   /* deeper blue */
+    background: rgba(85, 85, 85, 0.9);   /* deeper blue */
 }
 body.dark-mode #essayPage .back-button {
     color: #a5b4fc;        /* soft blue-lavender */
@@ -233,21 +233,23 @@ body.dark-mode .essay-title {
 
 .floating-button {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #007bff;
-    color: white;
-    padding: 0.8rem 1.2rem;
+    bottom: 0.75rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    color: black;
+    padding: 1rem 1.25rem;
     border: none;
     border-radius: 50px;
     font-size: 1rem;
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     transition: background 0.2s ease;
+    backdrop-filter: blur(2px);
+    font-weight: bold;
 }
 
 .floating-button:hover {
-    background: #0056b3;
+    background: rgb(219, 219, 219, 0.9);
 }
 
 #overlay {
@@ -457,7 +459,7 @@ body.dark-mode #secretKeyPopup .close-btn:hover {
   background-color: #f4f4ff;
   color: #333;
   z-index: 9999;
-  display: none; /* Hidden by default */
+  display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -487,4 +489,68 @@ body.dark-mode #loadingScreen {
 body.dark-mode #loadingScreen .spinner {
   border: 6px solid #555;
   border-top: 6px solid #4f9aff;
+}
+
+#control-bar {
+  display: none;
+  position: fixed;
+  bottom: 0.75rem;
+  left: 1rem;
+  transform: none;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1.5rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  backdrop-filter: blur(2px);
+}
+
+#control-bar button {
+  all: unset;
+  cursor: pointer;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+#control-bar button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+#control-bar svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: #333;
+  stroke-width: 1.5;
+  fill: none;
+}
+
+#control-bar .filled {
+  fill: #333;
+  stroke: none;
+}
+
+/* Light theme fallback */
+.highlight-sentence {
+    background-color: #d4bf00;
+}
+
+/* Dark mode styles */
+body.dark-mode #control-bar {
+  background: rgba(40, 40, 40, 0.9);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+body.dark-mode #control-bar svg,
+body.dark-mode .filled {
+  stroke: #fff;
+  fill: #fff;
+}
+
+body.dark-mode .highlight-sentence {
+    background-color: #554400;
 }

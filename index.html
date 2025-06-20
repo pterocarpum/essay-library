@@ -10,7 +10,7 @@
   <!-- Loading screen -->
   <div id="loadingScreen">
     <div class="spinner"></div>
-    <p>Loading essays...</p>
+    <p></p>
   </div>
   <!-- /home page -->
   <div id="homePage">
@@ -72,20 +72,49 @@
     <div class="essay-title"></div>
     <div></div> <!-- Content will be injected here -->
   </div>
-  <button class="floating-button" onclick="showSummary()">AI Summary</button>
+  <button class="floating-button" onclick="showSummary()">Summary</button>
+  
+  <!-- Read aloud control-bar -->
+  <div id="control-bar">
+    <button id="skip-back" aria-label="Skip Backward" onclick="skipBackward()">
+      <svg viewBox="0 0 24 24" class="filled">
+        <path d="M11 12L20 18V6L11 12ZM4 6H6V18H4V6Z" />
+      </svg>
+    </button>
+
+    <button id="play-pause" aria-label="Play" onclick="togglePlayPause(this)">
+      <svg viewBox="0 0 24 24" id="play-icon" class="filled">
+        <path d="M8 5v14l11-7z" />
+      </svg>
+      <svg viewBox="0 0 24 24" id="pause-icon" class="filled" style="display:none;">
+        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+      </svg>
+    </button>
+
+    <button id="skip-forward" aria-label="Skip Forward" onclick="skipForward()">
+      <svg viewBox="0 0 24 24" class="filled">
+        <path d="M13 12L4 6v12l9-6Zm7-6h-2v12h2V6Z" />
+      </svg>
+    </button>
+
+    <button id="toggle-mode" aria-label="Toggle Mode" onclick="toggleMode()">
+      <span id="mode-label">R</span>
+    </button>
+  </div>
 
   <!-- Overlay and summary popup -->
   <div id="overlay"></div>
   <div id="summaryPopup">
   <button class="close-btn" onclick="hideSummary()">✕</button>
   <div class="summary-content">
-    <h3>Essay Summary</h3>
+    <h3>AI Summary</h3>
     <p></p>
   </div>
 </div>
+  <script src="template.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
   <script src="decrypt.js"></script>
   <script src="get.js"></script>
-  <script src="template.js"></script>
+  <script src="speech.js"></script>
 </body>
 </html>
