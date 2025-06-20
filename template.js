@@ -361,6 +361,7 @@ function toggleSettings() {
   if (overlay) {
     if (overlay.style.display == 'flex') {
         overlay.style.display = 'none'
+        document.body.style.overflow = '';
     } else {
         overlay.style.display = 'flex'
         document.body.style.overflow = 'hidden';

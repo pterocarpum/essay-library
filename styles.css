@@ -114,7 +114,8 @@ body.dark-mode .essay-title {
 .search-bar select {
     padding: 0.6rem 1rem;
     font-size: 1rem;
-    min-width: 100px;
+    width: auto;
+    min-width: 150px;
     border-radius: 25px;
     border: 1px solid #ced4da;
     background: #eeeeee;
