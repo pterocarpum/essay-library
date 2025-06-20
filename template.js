@@ -358,7 +358,14 @@ function getReconstructedData(prefix) {
 
 function toggleSettings() {
   const overlay = document.querySelector('.settings-overlay');
-  if (overlay) overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex';
+  if (overlay) {
+    if (overlay.style.display == 'flex') {
+        overlay.style.display = 'none'
+    } else {
+        overlay.style.display = 'flex'
+        document.body.style.overflow = 'hidden';
+    }
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
