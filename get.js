@@ -3,10 +3,18 @@ let essayMetadataRaw;
 
 // Show popup when title is clicked
 document.querySelector('span#titleClick').addEventListener('click', () => {
-  localStorage.removeItem('secret');
-  localStorage.removeItem('key');
-  document.getElementById('secretKeyOverlay').style.display = 'block';
-  document.getElementById('secretKeyPopup').style.display = 'block';
+    // Clear existing essay cache
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key.startsWith("essayContents") || key.startsWith("essayMetadata")) {
+            localStorage.removeItem(key);
+        }
+    }
+    localStorage.removeItem('key');
+    localStorage.removeItem('secret');
+    sessionStorage.clear();
+    document.getElementById('secretKeyOverlay').style.display = 'block';
+    document.getElementById('secretKeyPopup').style.display = 'block';
 });
 
 // Hide popup
@@ -35,11 +43,18 @@ function isValidLZStringBase64(str) {
 
 async function submitSecretKey() {
     let secret = document.getElementById("secretInput").value.trim();
+    let secretInLocal = false;
     if (!secret) {
+        secretInLocal = true;
         secret = localStorage.getItem('secret')
         if (isValidLZStringBase64(secret)) secret = LZString.decompressFromBase64(secret);
     }
-    const key = document.getElementById("keyInput").value.trim() || localStorage.getItem('key');
+    let key = document.getElementById("keyInput").value.trim();
+    let keyInLocal = false;
+    if (!key) {
+        keyInLocal = true;
+        key = localStorage.getItem('key');
+    }
     const btn = document.getElementById('submitSecretKeyButton');
     const loadingWords = document.querySelector('#loadingScreen p');
 
@@ -84,18 +99,23 @@ async function submitSecretKey() {
     }
     // Store secrets in localStorage
     loadingWords.textContent = 'Caching';
-    if (!isValidLZStringBase64(localStorage.getItem('secret'))) localStorage.setItem('secret', LZString.compressToBase64(secret));
-    if (localStorage.getItem('key') !== key) localStorage.setItem('key', predeterminedScramble(key));
-    // cache data in sessionStorage
-    sessionStorage.clear(); // Clear previous sessionStorage data
-
+    // Clear existing essay cache
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key.startsWith("essayContents") || key.startsWith("essayMetadata")) {
+            localStorage.removeItem(key);
+        }
+    }
+    if (!secretInLocal) localStorage.setItem('secret', LZString.compressToBase64(secret));
+    if (!keyInLocal) localStorage.setItem('key', predeterminedScramble(key));
+    // cache data in localStorage
     let compressedContents = LZString.compressToUTF16(essayContentsRaw);
     let compressedMetadata = LZString.compressToUTF16(essayMetadataRaw);
     try {
         // Split and store essayContentsRaw
         let i = 0;
         while (compressedContents.length > 0) {
-            sessionStorage.setItem(`essayContentsRaw${i}`, compressedContents.slice(0, 100000));
+            localStorage.setItem(`essayContentsRaw${i}`, compressedContents.slice(0, 100000));
             compressedContents = compressedContents.slice(100000);
             i++;
         }
@@ -103,7 +123,7 @@ async function submitSecretKey() {
         // Split and store essayMetadataRaw
         let j = 0;
         while (compressedMetadata.length > 0) {
-            sessionStorage.setItem(`essayMetadataRaw${j}`, compressedMetadata.slice(0, 100000));
+            localStorage.setItem(`essayMetadataRaw${j}`, compressedMetadata.slice(0, 100000));
             compressedMetadata = compressedMetadata.slice(100000);
             j++;
         }

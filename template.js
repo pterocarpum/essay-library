@@ -339,8 +339,8 @@ function loadAllTopics(metadataMap) {
 function getReconstructedData(prefix) {
     let i = 0;
     let combined = '';
-    while (sessionStorage.getItem(`${prefix}${i}`)) {
-        combined += sessionStorage.getItem(`${prefix}${i}`);
+    while (localStorage.getItem(`${prefix}${i}`)) {
+        combined += localStorage.getItem(`${prefix}${i}`);
         i++;
     }
     if (!combined) return null;
